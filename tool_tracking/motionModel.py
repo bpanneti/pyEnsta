@@ -14,9 +14,7 @@ class MotionModel(Enum):
 
 def h(x, y):
     mat = np.zeros([2, 1])
-    mat[0] = np.sqrt(x**2+y**2)
-    mat[1] = np.arctan2(y, x)
-    mat[1] = np.mod(mat[1]+np.pi, 2*np.pi)-np.pi
+    pass
     return mat
 
 
@@ -25,17 +23,15 @@ def F(periode=0.0, dim=4, motionModelType=MotionModel.UNKNOWN):
     mat = np.identity(dim)
 
     if dim == 4 and motionModelType == MotionModel.CV:
-        mat[0, 1] = periode
-        mat[2, 3] = periode
+       pass
 
     return mat
 
 def Q(T=0.0, dim=4, motionModelType=MotionModel.UNKNOWN, noise=0.0):
     mat = np.identity(dim)
-
+    COV = []
     if dim == 4 and motionModelType == MotionModel.CV:
-        mat = np.array([[np.power(T, 3)/3, np.power(T, 2)/2, 0, 0], [np.power(T, 2)/2, T, 0, 0], [0, 0, np.power(T, 3)/3, np.power(T, 2)/2], [0, 0, np.power(T, 2)/2, T]])
+       pass
+     
 
-    noisedMat = np.array(np.power(noise, 2.0)*mat)
-
-    return noisedMat
+    return  COV

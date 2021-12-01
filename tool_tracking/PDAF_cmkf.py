@@ -5,19 +5,16 @@ Created on Thu Aug 15 09:51:33 2019
 @author: bpanneti
 """
 
-import tool_tracking.track as tr
-from tool_tracking.motionModel import MotionModel
-from tool_tracking.estimator import Estimator
-from scan import Plot, Scan, PLOTType
-import numpy as np
-from scipy.optimize import linear_sum_assignment
-from tool_tracking.estimator import TRACKER_TYPE
-from tool_tracking.clustering import Compress, clustering
+ 
+ 
+from tool_tracking.motionModel import MotionModel, StateType, F, Q
+from tool_tracking.estimator import Estimator, TRACKER_TYPE
+#import tool_tracking as tr 
+
 from point import Position
 from orientation import Orientation
-from sensor import Sensor
- 
-import sys
+import numpy as np
+
 
 class PDAF_cmkf(Estimator):# ENSTA  A modifier ici : changement de classe
     __metaclass__ = Estimator
@@ -25,22 +22,35 @@ class PDAF_cmkf(Estimator):# ENSTA  A modifier ici : changement de classe
     def __init__(self, parent=None, infos=None):
         super().__init__(parent, infos)
         self.type   = TRACKER_TYPE.CMKF_PDAF  
-        self.debug  = True 
-    def gating(self):    
+ 
+
+    def initializeTrack(self, plot):
+        super().initializeTrack(plot)
+
+        self.myTrack.initialize([plot], self.scan.dateTime, 0, 0, 0, [], [], [MotionModel.CV, 1])
+        self.tracks.append(self.myTrack)
         
-        _plots = self.scan.plots
-        #==========================================
-        # ensemble des plots validés
-        #==========================================
-        _plotsValides = []
+    def updateTrack(self, plot, unUpdatedTrack, track):
+        super().updateTrack(plot, unUpdatedTrack, track)
+
+        track.update([plot])
+            
+    @staticmethod
+    def predictor(currState, time , flagChange):
+        periode                        =  currState.time.msecsTo(time)/1000
      
-        for j,_plot in zip(range(0,len(_plots)),_plots):
-            for i,_track in zip(range(0,len(self.tracks)),self.tracks):
-                if _track.validate(_plot):   #PDAF il n'y a qu'une track
-                    _plotsValides.append(_plot)
-                   
-        return _plotsValides
-    
+        currState.xPred                =  F(periode, currState.state.shape[0], currState.filter[0])@currState.state #np.matrix(np.dot(F(periode, self.state.shape[0]), self.state))
+        currState.pPred                =  F(periode, currState.state.shape[0], currState.filter[0])@currState.covariance@ F(periode, currState.state.shape[0],currState.filter[0]).T + Q(periode,currState.state.shape[0],currState.filter[0],currState.filter[1])
+        currState.timeWithoutPlot     += periode
+
+        if flagChange:
+            currState.state = currState.xPred
+            currState.covariance = currState.pPred
+
+            currState.time = time
+
+            currState.updateLocation()
+            currState.updateCovariance() 
     @staticmethod
     def  estimator(plots, currState, posCapteur=Position(), orientationCapteur=Orientation()):
  
@@ -90,65 +100,21 @@ class PDAF_cmkf(Estimator):# ENSTA  A modifier ici : changement de classe
         
         for ind in range(0,len(plots)+1):
             if ind == 0:
-                beta[ind] = b/(b+np.sum(likelihood))
+                pass
             else:
-                beta[ind] = likelihood[ind]/(b+np.sum(likelihood))
+                pass
 
                 #combinaison
         currState.state         = np.zeros((currState.state.shape[0],1))
         currState.covariance    = np.zeros((currState.state.shape[0],currState.state.shape[0]))
    
         for ind in range(0,len(plots)+1):
-            currState.state +=  beta[ind] * state[:,[ind]]
+            pass
         for ind in range(0,len(plots)+1):
-            y = state[:,[ind]] - currState.state 
-            currState.covariance += beta[ind]*(covariance[:,:,ind] + y@y.T)
+            pass
+            pass
             
         currState.location.setXYZ(float(currState.state[0]),float(currState.state[2]), 0.0, 'ENU')
         currState.updateCovariance()    
             
-    def run(self):
-   
-        if self.scan != None:
- 
-            
-            print('in run')
-            #=================================================
-            # PDAF
-            #=================================================
-            
-            _plotsValides = self.gating()
- 
-            #=========================
-            # Mise à jour de la piste
-            #=========================
-            
-            if (self.tracks!=[]) :
-            
-                if len(_plotsValides)>0:
-                    for _track in self.tracks:
-                        _track.update(_plotsValides)
-                elif len(_plotsValides)==0:
-                    for _track in self.tracks:
-                        _track.prediction(self.scan.dateTime) 
-            
-            # =========================
-            # initialisation
-            # =========================
-   
-            if (self.tracks==[]):
-              for plot in self.scan.plots:
-                if( self.isTracked(plot.idTarget)): #uniquement pour l'initialisation
-                    myTrack =  tr.Track(TRACKER_TYPE.CMKF_PDAF)    
-                    myTrack.initialize([plot], self.scan.dateTime, 0, 0, 0, [], [], [
-                                   MotionModel.CV, 1])          
-                    self.tracks.append(myTrack)
-                    if self.debug:
-                        print(['initialisation d''une nouvelle track ', myTrack.id])   
-            # ==========================================================
-            # emission des pistes pour affichage et/ou enregistrement
-            # ==========================================================
-            if self.tracks != []:
-                self.updatedTracks.emit(self.tracks)
-
-            self.scan = None
+     

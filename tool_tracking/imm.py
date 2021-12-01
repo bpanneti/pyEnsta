@@ -26,7 +26,7 @@ class imm(Estimator):
         PTransition = np.array([[0.95, 0.05], [0.05, 0.95]])
 
         filter1 = [MotionModel.CV, 0.1,Mu[0],PTransition[0,:]]
-        filter2 = [MotionModel.CV, 2  ,Mu[1],PTransition[1,:]]
+        #à compléter
 
         filters = [filter1, filter2]
 
@@ -127,9 +127,10 @@ class imm(Estimator):
             K  = np.dot(currState.pPredModel[:,:,ind], np.dot(H.T, np.linalg.inv(S)))
             likelihood[ind] = In.T@np.linalg.inv(S)@In
             
-            currState.stateModel[:,[ind]] = currState.xPredModel[:,[ind]] + K@In
+            #à compléter
 
-            currState.covarianceModel[:,:,ind] = (np.identity(currState.xPredModel[:,[ind]].shape[0]) - K@H)@currState.pPredModel[:,:,ind]@(np.identity(currState.xPredModel[:,[ind]].shape[0]) - K@H).T + K@R@K.T
+
+            #à compléter
 
         #mise à jour des probabilités
       
@@ -147,8 +148,11 @@ class imm(Estimator):
         for ind,model in enumerate(currState.filter):
             currState.state += currState.Mu[ind] * currState.stateModel[:,[ind]]
         for ind,model in enumerate(currState.filter):
-            y = currState.stateModel[:,[ind]] - currState.state 
-            currState.covariance += currState.Mu[ind]*(currState.covarianceModel[:,:,ind] + y@y.T)
+            pass
+            #à compléter
+
+            #à compléter
+
 #        print('-----> state estimation')
 #        print(likelihood)
 #        print(currState.state)

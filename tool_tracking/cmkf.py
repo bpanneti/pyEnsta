@@ -7,7 +7,7 @@ Created on Thu Aug 15 09:51:33 2019
 
 from tool_tracking.motionModel import MotionModel, StateType, F, Q
 from tool_tracking.estimator import Estimator, TRACKER_TYPE
-import tool_tracking as tr 
+#import tool_tracking as tr 
 
 from point import Position
 from orientation import Orientation
@@ -63,14 +63,7 @@ class cmkf(Estimator):
         
         R = np.zeros([2,2])
         R[0:2,0:2]    = plot.R_XY[0:2,0:2]
-
-        In = z - np.dot(H,currState.xPred) 
-
-        S  =  R + np.dot(H, np.dot(currState.pPred, H.T))
-
-        K  = np.dot(currState.pPred, np.dot(H.T, np.linalg.inv(S)))
-        currState.state          = np.array(currState.xPred + np.dot(K, In))
-        currState.covariance     = np.array(np.dot(np.dot(np.identity(currState.xPred.shape[0]) - np.dot(K,H), currState.pPred), (np.identity(currState.xPred.shape[0]) - np.dot(K, H)).T) + np.dot(K, np.dot(R, K.T)))
-    
+        pass
+      
         currState.location.setXYZ(float(currState.state[0]),float(currState.state[2]), 0.0, 'ENU')
         currState.updateCovariance()

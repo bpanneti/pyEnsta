@@ -56,19 +56,7 @@ class ekf(Estimator):
 
         R = np.diag([plot.sigma_rho**2, (plot.sigma_theta * np.pi/180)**2])
         H = np.zeros([2, 4])   
-        distance2 = np.power(currState.xPred[0] - posCapteur.x_ENU, 2.0) + np.power(currState.xPred[2] - posCapteur.y_ENU, 2.0)
-
-        H[0,0] = (currState.xPred[0] - posCapteur.x_ENU) / np.sqrt(distance2)
-        H[0,2] = (currState.xPred[2] - posCapteur.y_ENU) / np.sqrt(distance2)
-        H[1,0] = -(currState.xPred[2] - posCapteur.y_ENU) / distance2
-        H[1,2] =  (currState.xPred[0] - posCapteur.x_ENU) / distance2
-        
-        S  =  R + np.dot(H, np.dot(currState.pPred, H.T)) 
-        K  = np.dot(currState.pPred, np.dot(H.T, np.linalg.inv(S)))
-        
-        currState.state = currState.xPred + K@In 
-
-        currState.covariance = np.dot(np.dot(np.identity(currState.xPred.shape[0]) - np.dot(K,H),currState.pPred), (np.identity(currState.xPred.shape[0]) - np.dot(K,H)).T) + np.dot(K,np.dot(R, K.T))
+        #à compléter
 
         currState.location.setXYZ(float(currState.state[0]), float(currState.state[2]),0.0, 'ENU')
         currState.updateCovariance()
